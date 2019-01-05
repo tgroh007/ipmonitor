@@ -1,0 +1,29 @@
+Here is the script:
+#!/usr/bin/perl -w
+
+use strict;
+
+my $mailprog = '/usr/sbin/sendmail';
+my $ip_last_check_file = "/Path/To/Current/IP/Address";
+my $ip_now = `curl -s http://checkip.dyndns.org`;
+$ip_now =~ s/.*?(\d+\.\d+\.\d+\.\d+).*/$1/s;
+
+open(IP, "<$ip_last_check_file") or die "Cannot open $ip_last_check_file: $!";
+my $ip_last_check = <IP>;
+close(IP);
+
+if ($ip_now ne $ip_last_check)
+{
+  open(IP, ">$ip_last_check_file") or die "Cannot open $ip_last_check: $!";
+  print IP $ip_now;
+  close(IP);
+
+  open (MAIL, "|$mailprog -t") || die "Can't open $mailprog!\n";
+  print MAIL "From: user\@domain.com\n";
+  print MAIL "To: user\@domain.com\n";
+  print MAIL "Subject: Your IP-address has changed\n";
+  print MAIL "Your IP-address has changed to $ip_now\n";
+  close MAIL;
+}
+
+exit;
